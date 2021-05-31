@@ -2,7 +2,6 @@
 //  main.cpp
 //  Hangman
 //
-//  Created by Pham Lightning on 2/27/21.
 //
 
 #include <iostream>
