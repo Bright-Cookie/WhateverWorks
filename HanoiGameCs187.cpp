@@ -2,7 +2,6 @@
 //  main.cpp
 //  HanoiGame
 //
-//  Created by Pham Lightning on 4/17/21.
 //
 
 #include <iostream>
