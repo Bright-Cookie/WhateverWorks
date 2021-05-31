@@ -1,387 +1,376 @@
 //
 //  main.cpp
-//  DNAASSEMBLER
+//  SimilarlityDetection
 //
-//  Created by Pham Lightning on 3/30/21.
 //
 
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
-class Fragment{
-private:
-    string sequence;
-public:
-    Fragment(string s){
-        sequence=s;
-    }
-    string getSequence(){
-        return sequence;
-    }
+
+
+
+//class SetUltilities{
+//public:
   
-
-int checkOverlap(Fragment fragment){
-   
-    int index=0;
-    string sequence2=fragment.getSequence();
-    int iterator=sequence.length();
-    
-    if(sequence.length()> sequence2.length()){
-        index=sequence.length()-sequence2.length();
-        iterator=sequence2.length();
-    }
-        while(iterator>=1){
-            if(
-              sequence.substr(index,iterator)==sequence2.substr(0,iterator) ){
-              //  cout<<fragment[f1Index].substr(index,iterator)<<endl;
-             //   cout<<fragment[f2Index].substr(0,iterator)<<endl;
-                
-                return iterator;
-            }
-            iterator--;
-            index++;
-        }
-    return 0;
-}
-string mergeWith(Fragment fragment){
-        int toLeftOut=checkOverlap(fragment);
-        string str1=sequence;
-        string str2=fragment.getSequence();
-    cout<<str1<<endl;
-    cout<<str2<<endl;
-        str1+=str2.substr(toLeftOut,str2.length()-toLeftOut);
-      
-       
-        return str1;
-    }
-
-};
-class Node{
-public:
-    Fragment *fragment;
-    Node* next;
-    Node(Fragment *f){
-        fragment=f;
-        next=NULL;
-    }
-    void setNext(Node* n){
-        next=n;
-    }
-    Node* getNext(){
-        return next;
-    }
-    Fragment* getFragment(){
-        return fragment;
-    }
-    
-};
-
-class AssemblerList{
-public:
-    Node* head;
-    int size;
-    int getSize(Node *node){
-        if(node==NULL){
-            return 0;
-        }
-        else{
-            return 1+ getSize(node->next);
-        }
-    }
-    int getSize(){
-        int count=0;
-        Node* current=head;
-        while(current!=NULL){
-            current->getNext();
-            count++;
-        }
-        return count;
-    }
-    void printList(Node* node){
-        cout<<node->getFragment()->getSequence();
-        printList(node->next);
-    }
-    Node* getNodeAtPos(int n){
-        if(n<1){
-            return NULL;
-        }
-        else{
-        int count=1;
-        Node* current=head;
-        while(count<n){
-            current= current->getNext();
-            count++;
-        }
-        return current;
-        }
-    }
-    void addNode(Fragment* fragment){
-        Node *newNode= new Node(fragment);
-        if(head==NULL){
+      set<string> unioning(set<string> s, set<string> t){
+        
+         set<string> neoSet(s);
+        
+          set<string>:: iterator it;
+          for( it=t.begin(); it!=t.end();++it){
+              neoSet.emplace(*it);
+                 }
+               
+             
            
-            head=newNode;
+         return neoSet;
+     }
+set<string> intersection(set<string> s, set<string> t){
+   set<string> neoSet(s);
+  
+    set<string>:: iterator it;
+    for( it=s.begin(); it!=s.end();++it){
+        if(t.find(*it)==t.end()){
+            neoSet.erase(*it);
         }
-        else{
-            Node* current=head;
-            while(current->getNext()!=NULL){
-                current=current->getNext();
-            }
-            current->setNext(newNode);
-            
-        }
-    }
-    void addNodeBeforeHead(Fragment *fragment){
-        Node* newNode= new Node(fragment);
-        newNode->setNext(head);
-        head=newNode;
-    }
-    void removeNodeAtPos(int n){
-        int count=1;
-        Node* prev=head;
-        Node*current=NULL;
-        if(prev->getNext()!=NULL){
-         current=prev->getNext();
-        }
-        while(count<n-1){
-            prev=prev->getNext();
-            current=current->getNext();
-            count++;
-        }
-        prev->setNext(current->getNext());
-        current->setNext(NULL);
-        size--;
-    }
-};
-class Assembler{
-public:
-    vector<Fragment> fraglist;
-    void addFragment(Fragment fragment){
-        fraglist.push_back(fragment);
-    }
-
-
-
-bool hasSmalllerMerge(int n1, int n2, int o1, int o2){
-    
-    string s1=fraglist.at(n1).getSequence();
-    string s2=fraglist.at(n2).getSequence();
-    int toLeftOut=fraglist.at(n1).checkOverlap(fraglist.at(n2));
-    s1+=s2.substr(toLeftOut,s2.length()-toLeftOut);
-    cout<<s1<<endl;
-     
-    string s3=fraglist.at(o1).getSequence();
-    string s4=fraglist.at(o2).getSequence();
-    toLeftOut=fraglist.at(o1).checkOverlap(fraglist.at(o2));
-
-    s3+=s4.substr(toLeftOut,s4.length()-toLeftOut);;
-    cout<<s3<<endl;
-    if(s1<s3){
-        return true;
-    }
-    else{
-        return false;
-    }
-}
-
-
-void printVector(){
-    for(int i=0; i < fraglist.size(); i++)
-        cout << fraglist.at(i).getSequence() << ' ';
-}
-void setToMergeWith( int &merge, int &mergeWith,int i, int j,int &lap){
-    int lap1=   fraglist.at(i).checkOverlap(fraglist.at(j));
-     int lap2=  fraglist.at(j).checkOverlap(fraglist.at(i));
-       int newLap=getLargerOverlap(lap1, lap2);
-       if(newLap>lap){
-       if(lap1<lap2){
-           lap=lap2;
-           merge=j;
-           mergeWith=i;
-       }
-       else {
-           lap=lap1;
-           merge=i;
-           mergeWith=j;
-       }
-       }
-       else if(newLap==lap){
-          
-               int o1=merge,n1=i;
-               int o2=mergeWith,n2=j;
-               if(lap1<lap2){
-                    n1=j;
-                    n2=i;
-               }
-               if(hasSmalllerMerge(n1, n2, o1, o2)==true){
-                   merge=n1;
-                   mergeWith=n2;
-           }
-       
-       }
    }
-       
-
-    void mergeFragment(int merge, int mergeWith){
-     string neoSequence=   fraglist.at(merge).mergeWith(fraglist.at(mergeWith));
-        Fragment neoFragment{neoSequence};
-        fraglist.erase(fraglist.begin()+merge);
-       if(merge>mergeWith){
-       fraglist.erase(fraglist.begin()+mergeWith);
-        }
-        else{
-            fraglist.erase(fraglist.begin()+(mergeWith-1));
-        }
-        printVector();
-        cout<<endl;
-        fraglist.insert(fraglist.begin(),neoFragment);
-        printVector();
-    }
-    int getLargerOverlap(int lap1, int lap2){
-        if(lap1<lap2){
-            return lap2;
-        }
-        else{
-            return lap1;
-        }
-    }
-    void assembleOnce(){
-        int lap=0;
-        int merge=0, mergeWith=0;
-        for(int i=0;i<fraglist.size()-1;i++){
-            for(int j=i+1;j<fraglist.size();j++){
-                setToMergeWith(merge, mergeWith, i, j, lap);
-            }
-        }
-        mergeFragment(merge,mergeWith);
-    }
-    void assembleAll(){
-        if(fraglist.size()>1){
-            assembleOnce();
-            assembleAll();
-        }
-    }
-};
-class Assembler2{
-public:
-    AssemblerList *list;
+   return neoSet;
+}
+set<string> difference(set<string> s, set<string> t){
+    set<string> neoSet(s);
    
-
-
-    string getMergedSequence(int i, int j){
-        string s1=list->getNodeAtPos(i)->getFragment()->getSequence();
-        string s2=list->getNodeAtPos(j)->getFragment()->getSequence();
-        int toLeftOut=(*(list->getNodeAtPos(i)->getFragment())).checkOverlap(*(list->getNodeAtPos(j)->getFragment()));
-        s1+=s2.substr(toLeftOut,s2.length()-toLeftOut);
-        return s1;
+     set<string>:: iterator it;
+     for( it=s.begin(); it!=s.end();++it){
+         if(t.find(*it)!=t.end()){
+             neoSet.erase(*it);
+         }
     }
-bool hasSmalllerMerge(int n1, int n2, int o1, int o2){
+    return neoSet;
     
-    string s1=getMergedSequence(n1, n2);
-    cout<<s1<<endl;
-     
-    string s2=getMergedSequence(o1, o2);
-    if(s1<s2){
-        return true;
-    }
-    else{
-        return false;
-    }
 }
-    
-void setToMergeWith( int &merge, int &mergeWith,int i, int j,int &lap){
-    int lap1=   (*(list->getNodeAtPos(i)->getFragment())).checkOverlap(*(list->getNodeAtPos(j)->getFragment()));
-     int lap2=  (*(list->getNodeAtPos(j)->getFragment())).checkOverlap(*(list->getNodeAtPos(i)->getFragment()));
-       int newLap=getLargerOverlap(lap1, lap2);
-       if(newLap>lap){
-       if(lap1<lap2){
-           lap=lap2;
-           merge=j;
-           mergeWith=i;
+double jaccardIndex(set<string> s,set<string> t){
+   if(s.empty() && t.empty()){
+       return -1;
+   }
+   set<string> intersect=intersection(s,t);
+   set<string> unitive=unioning(s,t);
+   return intersect.size()/unitive.size();
+}
+bool isanEmptyLine(string text){
+   if(text!=""){
+       string sub=text.substr(1,text.size()-1);
+       if(text[0]==' '&& text.size()==1){
+           return true;
        }
-       else {
-           lap=lap1;
-           merge=i;
-           mergeWith=j;
+       else if(text[0]==' '){
+           return isanEmptyLine(sub);
        }
-       }
-       else if(newLap==lap){
-          
-               int o1=merge,n1=i;
-               int o2=mergeWith,n2=j;
-               if(lap1<lap2){
-                    n1=j;
-                    n2=i;
-               }
-               if(hasSmalllerMerge(n1, n2, o1, o2)==true){
-                   merge=n1;
-                   mergeWith=n2;
-           }
-       
+       else{
+           return false;
        }
    }
-       
-
-    void mergeFragment(int merge, int mergeWith){
-     string neoSequence=   (*(list->getNodeAtPos(merge)->getFragment())).mergeWith(*(list->getNodeAtPos(mergeWith)->getFragment()));
-        Fragment neoFragment{neoSequence};
-        Fragment *neo=&neoFragment;
-        list->removeNodeAtPos(merge);
-       if(merge>mergeWith){
-       list->removeNodeAtPos(mergeWith);
-        }
-        else{
-            list->removeNodeAtPos(mergeWith-1);
-        }
-       
-        cout<<endl;
-        list->addNodeBeforeHead(neo);
-       
-    }
-    int getLargerOverlap(int lap1, int lap2){
-        if(lap1<lap2){
-            return lap2;
-        }
-        else{
-            return lap1;
-        }
-    }
-    void assembleOnce(){
-        int lap=0;
-        int merge=0, mergeWith=0;
-        for(int i=1;i<=list->getSize()-1;i++){
-            for(int j=i+1;j<=list->getSize();j++){
-                setToMergeWith(merge, mergeWith, i, j, lap);
+   else{
+       return true;
+   }
+}
+/*
+class SetUltilities{
+        
+    
+     set<string> intersection(set<string> s, set<string> t){
+        set<string> neoSet;
+        for( typename set<string>::iterator it1=s.begin(); it1!=s.end();++it1){
+            bool equalFound=false;
+            for(typename set<string>::iterator it2=s.begin(); it2!=t.end();++it2){
+                if(*it1==*it2){
+                    equalFound=true;
+                    break;
+                }
+            }
+            if(equalFound){
+                neoSet.insert(*it1);
             }
         }
-        mergeFragment(merge,mergeWith);
+        return neoSet;
     }
-    void assembleAll(){
-        if(list->getSize()>1){
-            assembleOnce();
-            assembleAll();
+     set<string> difference(set<string> s, set<string> t){
+        if(s.size()<t.size()){
+        set<string> neoSet(t);
+        }
+       
+            set<string> neoSet;
+    
+        for(typename set<string>::iterator it1=s.begin(); it1!=s.end();++it1){
+            bool equalFound=false;
+            for(typename set<string>::itertator it2=s.begin(); it2!=t.end();++it2){
+                if(*it1==*it2){
+                    equalFound=true;
+                   
+                    break;
+                }
+            }
+            if(!equalFound){
+                neoSet.insert(*it1);
+            }
+        }
+    
+        
+        for( typename set<string>::iterator it1=t.begin(); it1!=t.end();++it1){
+            bool equalFound=false;
+            for( typename set<string>::iterator it2=s.begin(); it2!=s.end();++it2){
+                if(*it1==*it2){
+                    equalFound=true;
+                   
+                    break;
+                }
+            }
+            if(equalFound){
+                neoSet.erase(it1);
+            }
+        }
+         return neoSet;
+    }
+     double jaccardIndex(set<string> s,set<string> t){
+        if(s.empty() && t.empty()){
+            return -1;
+        }
+        set<string> intersect=intersection(s,t);
+        set<string> unitive=unioning(s,t);
+        return intersect.size()/unitive.size();
+    }
+    
+};
+*/
+
+class SimilarlyUltilities{
+public:
+     bool isEmptyLine(string text){
+        string temp;
+        for(int i=0;i<text.size();i++){
+            temp+=" ";
+        }
+        if(text==temp){
+            return true;
+        }
+        else{
+            return false;
         }
     }
+     bool isanEmptyLine(string text){
+        if(text!=""){
+            string sub=text.substr(1,text.size()-1);
+            if(text[0]==' '&& text.size()==1){
+                return true;
+            }
+            else if(text[0]==' '){
+                return isanEmptyLine(sub);
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            return true;
+        }
+    }
+    string trim(string &s)
+    {
+        auto start = s.begin();
+        while (start != s.end() && isspace(*start)) {
+            start++;
+        }
+     
+        auto end = s.end();
+        do {
+            end--;
+        } while (distance(start, end) > 0 && isspace(*end));
+     
+        return string(start, end + 1);
+    }
+       set<string> trimmedLines(string text) {
+          
+          set <string> token;
+               
+             // stringstream class check1
+             stringstream check1(text);
+               
+             string intermediate;
+               
+             // Tokenizing w.r.t. space ' '
+             while(getline(check1, intermediate, '\n'))
+             {
+                 if(intermediate!="")
+                     trim(intermediate);
+                 token.insert(intermediate);
+                 
+             }
+               
+             // Printing the token vector
+          set<string>::iterator it;
+          for (it=token.begin(); it!=token.end(); ++it)
+              std::cout << ' ' << *it;
+          
+            return token;
+           
+          
+        }
+     bool isEndWord(char a, int i){
+        if(i<0){
+            return true;
+        }
+        if((a>=32 && a<=46) ){
+            return true;
+        }
+        return false;
+    }
+ 
+     vector<string> asLowercaseWords(string text) {
+    
+             
+           // Vector of string to save tokens
+           vector <string> tokens;
+             
+             
+           // Printing the token vector
+         int endLine=text.length()-1;
+        int wordStart=0;
+         while(isEndWord(text[wordStart], wordStart) && wordStart<text.length()){
+             wordStart++;
+         
+         }
+        for(int i=1;i<text.length();i++){
+           
+            
+            
+            if((isEndWord(text[i],i) && !isEndWord(text[i-1],i-1) )){
+                string sub=text.substr(wordStart,i-wordStart);
+                
+               transform(sub.begin(), sub.end(), sub.begin(), ::tolower);
+                tokens.push_back(sub);
+                int check;
+         
+                    wordStart=i+1;
+                                   check=i+1;
+                 
+                                   while(isEndWord(text[check], check)&& i<text.length()){
+                                      wordStart++;
+                                  check++;
+                                
+                                 }
+                    
+               
+
+                
+            }
+           
+           
+        }
+            return tokens;
+        }
+
+     double lineSimilarlity(string text1, string text2)
+    {
+        set<string> set1=trimmedLines(text1);
+        set<string> set2=trimmedLines(text2);
+       return jaccardIndex(set1, set2);
+    }
+     double lineSimilarlity(string text1, string text2, string templateText)
+    {
+        set<string> templateSet=trimmedLines(templateText);
+        set<string> set1=trimmedLines(text1);
+        set<string> neoset1= difference(set1, templateSet);
+        set<string> set2=trimmedLines(text1);
+        set<string> neoset2=difference(set2, templateSet);
+        return  jaccardIndex(neoset1, neoset2);
+    }
+      set<string> shingle(vector<string> words, int shingleLength) {
+         set<string> shingle;
+         for(int i=0;i<=words.size()-shingleLength;i++){
+             string sum="";
+             for(int j=i;j<i+shingleLength;j++){
+                 sum.append(words[j]);
+             }
+             shingle.emplace(sum);
+         }
+         return shingle;
+        }
+    void printSet(set<string> myset){
+        set<string>:: iterator it;
+        for( it = myset.begin(); it!=myset.end(); it++)
+        
+           cout << *it<< endl;
+    }
+    double shingleSimilarlity(string text1, string text2,string templateText, int shingleLength){
+        cout<<"ss"<<endl;
+        vector<string> temp=asLowercaseWords(templateText);
+        cout<<"ss"<<endl;
+       set<string> shingleTemplate=shingle(temp,shingleLength);
+        vector<string> t1=asLowercaseWords(text1);
+        set<string> shingle1=shingle(t1, shingleLength);
+        printSet(shingle1);
+        vector<string> t2=asLowercaseWords(text2);
+        set<string> shingle2=shingle(t2, shingleLength);
+        cout<<"2nd"<<endl;
+        printSet(shingle1);
+        set<string> neoShingle1=difference(shingle1, shingleTemplate);
+        set<string> neoShingle2=difference(shingle2, shingleTemplate);
+        cout<<"3rd part"<<endl;
+        printSet(neoShingle1);
+        printSet(neoShingle1);
+        return  jaccardIndex(shingle1, shingle2);
+    }
+     
 };
+
+
 int main(int argc, const char * argv[]) {
     // insert code here...
-    std::cout << "Hello, World!\n";
+    string text="  Hello, World!\n  Riven is for redemption.\n   No player likes playing yas";
+    string myLine="Almost all of Shakespeare’s Hamlet can be understood as a play about\nacting and the theater. For example, in Act 1, Hamlet adopts a pretense of\nmadness that he uses to protect himself and prevent his antagonists from discovering\nhis mission to revenge his father’s murder. He also presents truth by means of a show when he\ncompares the portraits of Gertrude’s two husbands in order to describe for her the true\nnature of the choice she has made. And when he leaps in Ophelia’s open grave ranting in\nhigh heroic terms, Hamlet is acting out the folly of excessive, melodramatic expressions\nof grief.";
+    string meLine="Almost all of Shakespeare’s Hamlet can be understood as a play about\nacting and the theater. For example, in Act 1, Hamlet adopts a pretense of\nmadness that he uses to protect himself and prevent his antagonists from discovering\nhis mission to revenge his father’s murder. He also presents truth by means of a show when he\ncompares the portraits of Gertrude’s two husbands in order to describe for her the true\nnature of the choice she has made. And when he leaps in Ophelia’s open grave ranting in\nhigh heroic terms, Hamlet is acting out the folly of excessive, melodramatic expressions\nof grief.";
+    string arr[]={"i","op","iii"};
+    set<string> s1={"io","poi","oooo"};
+    s1.insert(arr,arr+3);
+    vector <string> tokens;
+    string t1="I luve u i luve.";
+    string t2="I luve u i luve.";
+      
+
+    string intermediate1;
+
+    // Tokenizing w.r.t. space ' '
+
+    SimilarlyUltilities sm;
+  //  cout<<"The jaccard index of shingle is "<<sm.shingleSimilarlity(t1, t2, "", 2);
+    tokens=sm.asLowercaseWords(meLine);
+    char a=text[5];
+    
+    set<string> s={"a","c","d"};
+    set<string> t={"a","b"};
+    set<string> neo;
+    vector<string> myStr={"i","luve","u","i","luve"};
+   // neo=difference(t,s);
+    /*
+    for( it = neo.begin(); it!=neo.end(); it++)
+    
+       cout << *it<< endl;
+   */
+    //set<string> myset=sm.shingle(myStr, 2);
    
-    Fragment f1{"CGCAT"};
-    Fragment f2{"CATGAC"};
-    Fragment f3{"ACATG"};
-   Fragment f4{"GACTAC"};
-    Assembler assemble;
- 
-    assemble.addFragment(f1);
-    assemble.addFragment(f2);
-    assemble.addFragment(f3);
-    assemble.addFragment(f4);
-    cout<<endl;
-    assemble.assembleAll();
-  
-    cout<<endl;
-    assemble.printVector();
+    /*
+    for( it = myset.begin(); it!=myset.end(); it++)
+    
+       cout << *it<< endl;
+     */
+    for(int i = 0; i<tokens.size(); i++)
+    
+       cout << tokens[i]<< endl;
+     
+    //cout<<isanEmptyLine(noLine);
     return 0;
 }
